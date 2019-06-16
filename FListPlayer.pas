@@ -1039,14 +1039,14 @@ begin
   
   // まずはドライブ指定
   if cbexDrive.Text <> drive then
-  With TStringList.Create do
-  try
-    Assign(cbexDrive.Items);
-    cbexDrive.ItemIndex := IndexOf(drive);
-    cbexDrive.OnChange(nil);
-  finally
-    Free;
-  end;
+    With TStringList.Create do
+    try
+      Assign(cbexDrive.Items);
+      cbexDrive.ItemIndex := IndexOf(drive);
+    finally
+      Free;
+    end;
+  cbexDrive.OnChange(cbexDrive);
 
   // ディレクトリを指定
   With TStringList.Create do
@@ -1166,7 +1166,7 @@ begin
   BuildDriveListEx;
 
   if (txtPath.Text = '') then
-    cbexDrive.OnChange(nil);
+    cbexDrive.OnChange(cbexDrive);
 
   OpenDirectory(txtPath.Text);
 
