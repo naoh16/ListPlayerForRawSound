@@ -76,8 +76,8 @@ procedure TShellIcon.MakeImages;
 var
   Reg: TRegistry;
 begin
-  if FileExists('Shell32.dll') then
-  begin
+//  if FileExists('%WINDIR%\System32\Shell32.dll') then
+//  begin
     AddIcon('Shell32.dll,3'); // 閉じたフォルダ
     AddIcon('Shell32.dll,4'); // 開いたフォルダ
 //      AddIcon('Shell32.dll,5'); // 5 inch FD
@@ -88,7 +88,7 @@ begin
 //      AddIcon('Shell32.dll,10'); // ネットワーク 切断
     AddIcon('Shell32.dll,11'); // CD
 //      AddIcon('Shell32.dll,12'); // RAM ディスク
-  end;
+//  end;
 
   Reg := TRegistry.Create;
   try

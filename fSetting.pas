@@ -74,7 +74,7 @@ var
 begin
   With AppGlobal.Ini do
   begin
-    //chbNoTreeIcon.Checked := ReadBool('Setting', 'NoTreeIcon', chbNoTreeIcon.Checked);
+    chbNoTreeIcon.Checked := ReadBool('Setting', 'NoTreeIcon', chbNoTreeIcon.Checked);
     chbUseTimer.Checked := ReadBool('Play', 'UseTimer', chbUseTimer.Checked);
     chbRawOnlyMode.Checked := ReadBool('Setting', 'RawOnlyMode', chbRawOnlyMode.Checked);
     chbAutoWavHeader.Checked := ReadBool('Setting', 'AutoWavHeader', chbAutoWavHeader.Checked);
@@ -86,8 +86,8 @@ begin
     if chbRawOnlyMode.Checked then chbAutoWavHeader.Enabled := false;
 
     // ToDo: How to apply icons for Windows10, or Win10-32bit?
-    chbNoTreeIcon.Checked := true;
-    chbNoTreeIcon.Enabled := false;
+    //chbNoTreeIcon.Checked := true;
+    //chbNoTreeIcon.Enabled := false;
   end;
   gbDeleteFileClick(nil);
 
@@ -217,8 +217,8 @@ var
 begin
   With AppGlobal.Ini do
   begin
-    //WriteBool('Setting', 'NoTreeIcon', chbNoTreeIcon.Checked);
-    WriteBool('Setting', 'NoTreeIcon', true);
+    WriteBool('Setting', 'NoTreeIcon', chbNoTreeIcon.Checked);
+    //WriteBool('Setting', 'NoTreeIcon', true);
     WriteBool('Play', 'UseTimer', chbUseTimer.Checked);
     WriteBool('Setting', 'RawOnlyMode', chbRawOnlyMode.Checked);
     WriteBool('Setting', 'AutoWavHeader', chbAutoWavHeader.Checked);
