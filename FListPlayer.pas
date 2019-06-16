@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, WaveOut, ComCtrls, ExtCtrls, ActiveX, ShellIcon, htListViewEx,
   Menus, ActnList, ToolWin, ShellAPI, MMSystem,
-  fWaveView, fShortcutList, Global, ImgList, System.ImageList, System.Actions;
+  fWaveView, fShortcutList, Global, SoundFile, ImgList, System.ImageList, System.Actions;
 //  Menus, ActnList, DropSource, DropTarget, ToolWin, ShellAPI,
 
 type
@@ -119,10 +119,6 @@ type
     FbPlayWaveWithUseTimer: Boolean;
     procedure LoadSetting;
     procedure SaveSetting;
-    procedure SwapData(lpData: PAnsiChar; dwLength: DWORD);
-    function GetFileData(var lpData: Pointer; filename: String; bSwap: Boolean; var waveHeader: TWaveFormatEx): Cardinal;
-    function GetFileData_RAW(var lpData: Pointer; var msWave: TMemoryStream): Cardinal;
-    function GetFileData_WAV(var lpData: Pointer; var msWave: TMemoryStream; var waveHeader: TWaveFormatEx): Cardinal;
     procedure PlaySound(filename :String);
     procedure PlayList(Index: Integer);
     procedure InitDirectoryTree(const Path: String);
@@ -305,81 +301,66 @@ begin
   PlayList(0);
 end;
 
-procedure TMainForm.SwapData(lpData: PAnsiChar; dwLength: DWORD);
-var
-  i: DWORD;
-  temp: AnsiChar;
-begin
-  if Ceil(dwLength/2) <> Floor(dwLength/2) then Exit;
-  i := 0;
-  while i < dwLength do
-  begin
-    temp := lpData[i+1];
-    lpData[i+1] := lpData[i];
-    lpData[i] := temp;
-    i := i + 2;
-  end;
-end;
-
 procedure TMainForm.PlaySound(filename: String);
 var
-  Buffer: Pointer;
-  dwLength: Cardinal;
   n: Cardinal;
   waveHeader: TWaveFormatEx;
   nSampling: Integer;
   nBit: Integer;
+  soundFile: TSoundFile;
 begin
   btnPlayAll.Enabled := false;
   btnStop.Enabled := true;
 
-  // RAWファイル専用モードの場合は，フォーマットを0にしておく
-  // このprocedure中で呼ばれる関数で利用される
-  if AppGlobal.Ini.ReadBool('Setting', 'RawOnlyMode', true) then
-    waveHeader.wFormatTag := 0
-  else
-    waveHeader.wFormatTag := 1;
-  dwLength := GetFileData(Buffer, filename, cbSwap.Checked, waveHeader);
+  // Prepare waveOut
+  with waveOut do
+  begin
+    Volume   := tbMasterVolume.Position;
+    Stereo   := cbStereo.Checked;
+    Bit      := StrToInt(cbxBit.Text);
+    Sampling := StrToInt(cbxSampling.Text);
+  end;
 
+  soundFile := TSoundFile.Create;
+  soundFile.Load(filename, cbSwap.Checked, AppGlobal.Ini.ReadBool('Setting', 'RawOnlyMode', true));
+  waveHeader := soundFile.WaveFormat;
   try
+    // AutoWavHeaderの処理
     if AppGlobal.Ini.ReadBool('Setting', 'AutoWavHeader', true) and (waveHeader.wFormatTag > 0) then
     begin
       waveOut.Bit := waveHeader.wBitsPerSample;
       waveOut.Sampling := waveHeader.nSamplesPerSec;
-    end else begin
-      waveOut.Bit := StrToInt(cbxBit.Text);
-      waveOut.Sampling := StrToInt(cbxSampling.Text);
     end;
 
+    // WaveViewの更新
     WaveViewForm.SetParameter(waveOut.Bit, waveOut.Sampling, miAutoLabel.Checked);
-    WaveViewForm.DrawWaveGraph(filename, Buffer, dwLength);
-    
-    tbPlayPosition.Max := dwLength;
+    WaveViewForm.DrawWaveGraph(filename, soundFile.Buffer, soundFile.BufferLength);
+
+    // 再生シークバーの初期化
+    tbPlayPosition.Max := soundFile.BufferLength;
     tbPlayPosition.Position := 0;
     tbPlayPosition.Frequency := waveOut.Sampling;
 
-    with waveOut do
+    // 再生（ProcessMessagesを定期的に呼ぶことで，GUIスレッドでの音再生をしている）
     try
-      Volume := tbMasterVolume.Position;
-      Stereo := cbStereo.Checked;
-
-      Open;
-      Play(PAnsiChar(Buffer), dwLength);
-      while IsPlaying do
+      waveOut.Open;
+      waveOut.Play(PAnsiChar(soundFile.Buffer), soundFile.BufferLength);
+      while waveOut.IsPlaying do
       begin
         Sleep(20);  // 適当にウェイト掛けておく（処理落ち防止）
         Application.ProcessMessages;
-        n := Position;
+        n := waveOut.Position;
         WaveViewForm.DrawPlayLine(n);
         tbPlayPosition.Position := n;
       end;
     finally
-      Stop;
-      Close;
+      waveOut.Stop;
+      waveOut.Close;
 //    tbPlayPosition.Position := tbPlayPosition.Max;
     end;
   finally
-    FreeMem(Buffer);
+    //FreeMem(Buffer);
+    soundFile.Free;
   end;
 
   btnPlayAll.Enabled := true;
@@ -826,25 +807,19 @@ end;
 
 procedure TMainForm.xlvFilesClick(Sender: TObject);
 var
-  Buffer: Pointer;
-  dwLength: DWORD;
   filename: String;
   waveHeader: TWaveFormatEx;
+  soundFile: TSoundFile;
 begin
   if lvFiles.SelCount = 0 then Exit;
   if not WaveViewForm.Showing then Exit;
-//  filename := FStrDirectory + lvFiles.Selected.Caption;
   filename := FStrDirectory + lvFiles.Selected.SubItems[0];
   if not FileExists(filename) then Exit;
 
-  // RAWファイル専用モードの場合は，フォーマットを0にしておく
-  // このprocedure中で呼ばれる関数で利用される
-  if AppGlobal.Ini.ReadBool('Setting', 'RawOnlyMode', true) then
-    waveHeader.wFormatTag := 0
-  else
-    waveHeader.wFormatTag := 1;
+  soundFile := TSoundFile.Create;
+  soundFile.Load(filename, cbSwap.Checked, AppGlobal.Ini.ReadBool('Setting', 'RawOnlyMode', true));
+  waveHeader := soundFile.WaveFormat;
 
-  dwLength := GetFileData(Buffer, filename, cbSwap.Checked, waveHeader);
   try
     // WAVヘッダーの自動適用がONで，解析にも成功していれば
     if AppGlobal.Ini.ReadBool('Setting', 'AutoWavHeader', true) and (waveHeader.wFormatTag > 0) then
@@ -852,98 +827,10 @@ begin
     else
       WaveViewForm.SetParameter(StrToInt(cbxBit.Text), StrToInt(cbxSampling.Text), miAutoLabel.Checked);
 
-    WaveViewForm.DrawWaveGraph(filename, Buffer, dwLength);
+    WaveViewForm.DrawWaveGraph(filename, soundFile.Buffer, soundFile.BufferLength);
   finally
-    FreeMem(Buffer);
+    soundFile.Free;
   end;
-end;
-
-function TMainForm.GetFileData(var lpData: Pointer; filename: String;
-  bSwap: Boolean; var waveHeader: TWaveFormatEx): Cardinal;
-var
-  fileStream: TMemoryStream;
-begin
-  Result := 0;
-
-  fileStream := TMemoryStream.Create;
-  fileStream.LoadFromFile(filename);
-
-  // try to load as WAV file, if no 'RAW-ONLY-MODE'
-  if waveHeader.wFormatTag > 0 then
-  begin
-    fileStream.Position := 0;
-    Result := GetFileData_WAV(lpData, fileStream, waveHeader);
-  end;
-
-  // try to read as RAW file
-  if Result = 0 then
-  begin
-    waveHeader.wFormatTag := 0;
-    fileStream.Position := 0;
-    Result := GetFileData_RAW(lpData, fileStream);
-    if(bSwap) then SwapData(lpData, Result);
-  end;
-
-  fileStream.Clear;
-  fileStream.Free;
-end;
-
-function TMainForm.GetFileData_RAW(var lpData: Pointer; var msWave: TMemoryStream): Cardinal;
-var
-  iBufferLength: LongInt;
-begin
-  iBufferLength := msWave.Size;
-  System.GetMem(lpData, iBufferLength);
-  msWave.ReadBuffer(lpData^, iBufferLength);
-  Result := Cardinal(iBufferLength);
-end;
-
-function TMainForm.GetFileData_WAV(var lpData: Pointer; var msWave: TMemoryStream; var waveHeader: TWaveFormatEx): Cardinal;
-var
-  chunk: Array[0..4] of AnsiChar;
-  iBufferLength: LongInt;
-  iFileAllLength: LongInt;
-begin
-  Result := 0;
-
-  msWave.ReadBuffer(chunk[0], 4);  // 'RIFF'
-  chunk[4] := AnsiChar(0);
-  if chunk = 'RIFF' then
-  begin
-    msWave.ReadBuffer(Pointer(iFileAllLength), 4);  // 全体 - 8 byte
-    msWave.ReadBuffer(chunk[0], 4);  // 'WAVE'
-    iBufferLength := 0;
-
-    // チャンクのパ―ス
-    repeat
-    begin
-      msWave.Seek(iBufferLength, soFromCurrent);
-      msWave.ReadBuffer(chunk[0], 4);
-      msWave.ReadBuffer(Pointer(iBufferLength), 4);
-
-      // 'fmt 'チャンク
-      if chunk = 'fmt ' then
-      begin
-        msWave.ReadData(waveHeader.wFormatTag);       // 2
-        msWave.ReadData(waveHeader.nChannels);        // 2
-        msWave.ReadData(waveHeader.nSamplesPerSec);   // 4
-        msWave.ReadData(waveHeader.nAvgBytesPerSec);  // 4
-        msWave.ReadData(waveHeader.nBlockAlign);      // 2
-        msWave.ReadData(waveHeader.wBitsPerSample);   // 2
-        waveHeader.cbSize := 0;
-        msWave.Seek(-iBufferLength, soFromCurrent);
-      end;
-    end
-    until chunk = 'data';
-
-    // 'data'チャンク
-    //lpData := Pointer(AllocMem(iBufferLength));
-    System.GetMem(lpData, iBufferLength);
-    msWave.ReadBuffer(lpData^, iBufferLength);
-
-    Result := Cardinal(iBufferLength);
-  end;
-  // RIFFヘッダーがないと Reult は0のままである
 end;
 
 procedure TMainForm.ReadDriveList(ADriveList: TStrings);

@@ -81,12 +81,14 @@ object MainForm: TMainForm
     TabOrder = 1
     object RBottomPanel: TPanel
       Left = 0
-      Top = 82
+      Top = 80
       Width = 529
-      Height = 310
+      Height = 312
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 0
+      ExplicitTop = 82
+      ExplicitHeight = 310
       object xlvFiles: TListView
         Left = -8
         Top = 24
@@ -118,14 +120,13 @@ object MainForm: TMainForm
       Left = 0
       Top = 0
       Width = 529
-      Height = 82
+      Height = 80
       Align = alTop
       AutoSize = True
       ParentShowHint = False
       ShowHint = True
       TabOrder = 1
       OnResize = ControlBar1Resize
-      ExplicitHeight = 80
       object tbPlayPosition: TTrackBar
         Left = 11
         Top = 28
@@ -289,7 +290,7 @@ object MainForm: TMainForm
         Left = 11
         Top = 54
         Width = 100
-        Height = 22
+        Height = 20
         Anchors = [akLeft, akRight]
         AutoSize = True
         ButtonHeight = 20

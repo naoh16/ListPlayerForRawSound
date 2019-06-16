@@ -11,7 +11,8 @@ uses
   uFileListview in 'uFileListview.pas',
   fAboutBox in 'fAboutBox.pas' {AboutBox},
   fSetting in 'fSetting.pas' {SettingDlg},
-  fShortcutList in 'fShortcutList.pas' {ShortbutListForm};
+  fShortcutList in 'fShortcutList.pas' {ShortbutListForm},
+  SoundFile in 'SoundFile.pas';
 
 {$R *.res}
 
