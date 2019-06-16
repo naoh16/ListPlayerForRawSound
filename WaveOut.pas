@@ -46,7 +46,7 @@ type
     constructor Create;
     destructor Destroy;override;
     procedure Open;
-    procedure Play(var lpData: PAnsiChar; dwLength: DWORD);
+    procedure Play(lpData: PAnsiChar; dwLength: DWORD);
     procedure Stop;
     procedure Close;
     procedure WaveOutProc(uMsg: UINT; dwParam: DWORD);
@@ -157,7 +157,7 @@ begin
   end;
 end;
 
-procedure TWavOut.Play(var lpData: PAnsiChar; dwLength: DWORD);
+procedure TWavOut.Play(lpData: PAnsiChar; dwLength: DWORD);
 var
    mmres: MMRESULT;
    text: array[0..255] of Char;

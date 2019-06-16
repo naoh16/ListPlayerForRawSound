@@ -1,4 +1,4 @@
-object Form1: TForm1
+object MainForm: TMainForm
   Left = 234
   Top = 109
   Caption = 'ListPlayer for RawFile'
@@ -8,7 +8,7 @@ object Form1: TForm1
   Font.Charset = SHIFTJIS_CHARSET
   Font.Color = clWindowText
   Font.Height = -12
-  Font.Name = #65325#65331' '#65328#12468#12471#12483#12463
+  Font.Name = 'MS UI Gothic'
   Font.Style = []
   Menu = MainMenu1
   OldCreateOrder = False

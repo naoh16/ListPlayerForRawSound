@@ -6,11 +6,11 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, WaveOut, ComCtrls, ExtCtrls, ActiveX, ShellIcon, htListViewEx,
   Menus, ActnList, ToolWin, ShellAPI, MMSystem,
-  fWaveView, fShortcutList, Global, ImgList, System.ImageList, System.Actions;
+  fWaveView, fShortcutList, Global, SoundFile, ImgList, System.ImageList, System.Actions;
 //  Menus, ActnList, DropSource, DropTarget, ToolWin, ShellAPI,
 
 type
-  TForm1 = class(TForm)
+  TMainForm = class(TForm)
     tbPlayPosition: TTrackBar;
     cbSwap: TCheckBox;
     LeftPanel: TPanel;
@@ -119,10 +119,6 @@ type
     FbPlayWaveWithUseTimer: Boolean;
     procedure LoadSetting;
     procedure SaveSetting;
-    procedure SwapData(lpData: PAnsiChar; dwLength: DWORD);
-    function GetFileData(var lpData: Pointer; filename: String; bSwap: Boolean; var waveHeader: TWaveFormatEx): Cardinal;
-    function GetFileData_RAW(var lpData: Pointer; var msWave: TMemoryStream): Cardinal;
-    function GetFileData_WAV(var lpData: Pointer; var msWave: TMemoryStream; var waveHeader: TWaveFormatEx): Cardinal;
     procedure PlaySound(filename :String);
     procedure PlayList(Index: Integer);
     procedure InitDirectoryTree(const Path: String);
@@ -147,9 +143,9 @@ type
   end;
         
 var
-  Form1: TForm1;
-  Form2: TForm2;
-  Form3: TForm3;
+  MainForm: TMainForm;
+  WaveViewForm: TWaveViewForm;
+  ShortcutListForm: TShortcutListForm;
 //  AppGlobal: TGlobal;
 
 implementation
@@ -157,16 +153,16 @@ uses
   Math, IniFiles, uFileListView, fAboutBox, fSetting;
 {$R *.dfm}
 
-procedure TForm1.FormCreate(Sender: TObject);
+procedure TMainForm.FormCreate(Sender: TObject);
 begin
 //  AppGlobal := TGlobal.Create;
   // とりあえず メインフォームにバージョン追加
   Caption := Caption + ' - ' + AppGlobal.AppVersion;
   
-  Form2 := TForm2.Create(Self);
-  Form3 := TForm3.Create(Self);
+  WaveViewForm := TWaveViewForm.Create(Self);
+  ShortcutListForm := TShortcutListForm.Create(Self);
 //  // DnD用
-//  DropFileTarget1.Register(Form1);
+//  DropFileTarget1.Register(MainForm);
   // リストボックスの作成
   xlvFiles.Free;
   lvFiles := TFileListView.Create(RBottomPanel);
@@ -215,7 +211,7 @@ begin
   SetAutoCompleteEdit;
 end;
 
-procedure TForm1.FormDestroy(Sender: TObject);
+procedure TMainForm.FormDestroy(Sender: TObject);
 begin
   SaveSetting;
 
@@ -227,7 +223,7 @@ begin
 //  DropFileTarget1.Unregister;
 end;
 
-procedure TForm1.LoadSetting;
+procedure TMainForm.LoadSetting;
 var
   i: Integer;
 begin
@@ -239,13 +235,13 @@ begin
     Left := ReadInteger('Window', 'Left', Left);
     Top := ReadInteger('Window', 'Top', Top);
     LeftPanel.Width := ReadInteger('Window', 'LeftPanelWidth', LeftPanel.Width);
-    Form2.Visible := ReadBool('Window', 'F2Visible', Form2.Visible);
-    Form2.Width := ReadInteger('Window', 'F2Width', Form2.Width);
-    Form2.Height := ReadInteger('Window', 'F2Height', Form2.Height);
-    Form2.Left := ReadInteger('Window', 'F2Left', Form2.Left);
-    Form2.Top := ReadInteger('Window', 'F2Top', Form2.Top);
-    Form2.cmbMaxRange.ItemIndex := ReadInteger('Window', 'F2MaxRange', Form2.cmbMaxRange.ItemIndex);
-    Form3.Visible := ReadBool('Window', 'SimpleHelpVisible', Form3.Visible);
+    WaveViewForm.Visible := ReadBool('Window', 'F2Visible', WaveViewForm.Visible);
+    WaveViewForm.Width := ReadInteger('Window', 'F2Width', WaveViewForm.Width);
+    WaveViewForm.Height := ReadInteger('Window', 'F2Height', WaveViewForm.Height);
+    WaveViewForm.Left := ReadInteger('Window', 'F2Left', WaveViewForm.Left);
+    WaveViewForm.Top := ReadInteger('Window', 'F2Top', WaveViewForm.Top);
+    WaveViewForm.cmbMaxRange.ItemIndex := ReadInteger('Window', 'F2MaxRange', WaveViewForm.cmbMaxRange.ItemIndex);
+    ShortcutListForm.Visible := ReadBool('Window', 'SimpleHelpVisible', ShortcutListForm.Visible);
     for i:=0 to lvFiles.Columns.Count - 1 do
       lvFiles.Column[i].Width := ReadInteger('Filelist', 'Col' + IntToStr(i), lvFiles.Column[i].Width);
     cbSwap.Checked := ReadBool('Play', 'Swap', cbSwap.Checked);
@@ -260,15 +256,15 @@ begin
     waveOut.UseTimer := ReadBool('Play', 'UseTimer', FbPlayWaveWithUseTimer);
   end;
 
-  tbtnViewWave.Down := Form2.Visible;
-  Form2.cmbMaxRangeChange(nil);
+  tbtnViewWave.Down := WaveViewForm.Visible;
+  WaveViewForm.cmbMaxRangeChange(nil);
 
   // ポップアップに外部アプリの登録
   AddFilelistPopupMenu;
 
 end;
 
-procedure TForm1.SaveSetting;
+procedure TMainForm.SaveSetting;
 var
   i: integer;
 begin
@@ -280,13 +276,13 @@ begin
     WriteInteger('Window', 'Left', Left);
     WriteInteger('Window', 'Top', Top);
     WriteInteger('Window', 'LeftPanelWidth', LeftPanel.Width);
-    WriteBool('Window', 'F2Visible', Form2.Visible);
-    WriteInteger('Window', 'F2Width', Form2.Width);
-    WriteInteger('Window', 'F2Height', Form2.Height);
-    WriteInteger('Window', 'F2Left', Form2.Left);
-    WriteInteger('Window', 'F2Top', Form2.Top);
-    WriteInteger('Window', 'F2MaxRange', Form2.cmbMaxRange.ItemIndex);
-    WriteBool('Window', 'SimpleHelpVisible', Form3.Visible);
+    WriteBool('Window', 'F2Visible', WaveViewForm.Visible);
+    WriteInteger('Window', 'F2Width', WaveViewForm.Width);
+    WriteInteger('Window', 'F2Height', WaveViewForm.Height);
+    WriteInteger('Window', 'F2Left', WaveViewForm.Left);
+    WriteInteger('Window', 'F2Top', WaveViewForm.Top);
+    WriteInteger('Window', 'F2MaxRange', WaveViewForm.cmbMaxRange.ItemIndex);
+    WriteBool('Window', 'SimpleHelpVisible', ShortcutListForm.Visible);
     for i:=0 to lvFiles.Columns.Count - 1 do
       WriteInteger('Filelist', 'Col' + IntToStr(i), lvFiles.Column[i].Width);
     WriteBool('Play', 'Swap', cbSwap.Checked);
@@ -300,93 +296,78 @@ begin
   end;
 end;
 
-procedure TForm1.btnPlayAllaClick(Sender: TObject);
+procedure TMainForm.btnPlayAllaClick(Sender: TObject);
 begin
   PlayList(0);
 end;
 
-procedure TForm1.SwapData(lpData: PAnsiChar; dwLength: DWORD);
+procedure TMainForm.PlaySound(filename: String);
 var
-  i: DWORD;
-  temp: AnsiChar;
-begin
-  if Ceil(dwLength/2) <> Floor(dwLength/2) then Exit;
-  i := 0;
-  while i < dwLength do
-  begin
-    temp := lpData[i+1];
-    lpData[i+1] := lpData[i];
-    lpData[i] := temp;
-    i := i + 2;
-  end;
-end;
-
-procedure TForm1.PlaySound(filename: String);
-var
-  Buffer: Pointer;
-  dwLength: Cardinal;
   n: Cardinal;
   waveHeader: TWaveFormatEx;
   nSampling: Integer;
   nBit: Integer;
+  soundFile: TSoundFile;
 begin
   btnPlayAll.Enabled := false;
   btnStop.Enabled := true;
 
-  // RAWファイル専用モードの場合は，フォーマットを0にしておく
-  // このprocedure中で呼ばれる関数で利用される
-  if AppGlobal.Ini.ReadBool('Setting', 'RawOnlyMode', true) then
-    waveHeader.wFormatTag := 0
-  else
-    waveHeader.wFormatTag := 1;
-  dwLength := GetFileData(Buffer, filename, cbSwap.Checked, waveHeader);
+  // Prepare waveOut
+  with waveOut do
+  begin
+    Volume   := tbMasterVolume.Position;
+    Stereo   := cbStereo.Checked;
+    Bit      := StrToInt(cbxBit.Text);
+    Sampling := StrToInt(cbxSampling.Text);
+  end;
 
+  soundFile := TSoundFile.Create;
+  soundFile.Load(filename, cbSwap.Checked, AppGlobal.Ini.ReadBool('Setting', 'RawOnlyMode', true));
+  waveHeader := soundFile.WaveFormat;
   try
+    // AutoWavHeaderの処理
     if AppGlobal.Ini.ReadBool('Setting', 'AutoWavHeader', true) and (waveHeader.wFormatTag > 0) then
     begin
       waveOut.Bit := waveHeader.wBitsPerSample;
       waveOut.Sampling := waveHeader.nSamplesPerSec;
-    end else begin
-      waveOut.Bit := StrToInt(cbxBit.Text);
-      waveOut.Sampling := StrToInt(cbxSampling.Text);
     end;
 
-    Form2.SetParameter(waveOut.Bit, waveOut.Sampling, miAutoLabel.Checked);
-    Form2.DrawWaveGraph(filename, Buffer, dwLength);
-    
-    tbPlayPosition.Max := dwLength;
+    // WaveViewの更新
+    WaveViewForm.SetParameter(waveOut.Bit, waveOut.Sampling, miAutoLabel.Checked);
+    WaveViewForm.DrawWaveGraph(filename, soundFile.Buffer, soundFile.BufferLength);
+
+    // 再生シークバーの初期化
+    tbPlayPosition.Max := soundFile.BufferLength;
     tbPlayPosition.Position := 0;
     tbPlayPosition.Frequency := waveOut.Sampling;
 
-    with waveOut do
+    // 再生（ProcessMessagesを定期的に呼ぶことで，GUIスレッドでの音再生をしている）
     try
-      Volume := tbMasterVolume.Position;
-      Stereo := cbStereo.Checked;
-
-      Open;
-      Play(PAnsiChar(Buffer), dwLength);
-      while IsPlaying do
+      waveOut.Open;
+      waveOut.Play(PAnsiChar(soundFile.Buffer), soundFile.BufferLength);
+      while waveOut.IsPlaying do
       begin
         Sleep(20);  // 適当にウェイト掛けておく（処理落ち防止）
         Application.ProcessMessages;
-        n := Position;
-        Form2.DrawPlayLine(n);
+        n := waveOut.Position;
+        WaveViewForm.DrawPlayLine(n);
         tbPlayPosition.Position := n;
       end;
     finally
-      Stop;
-      Close;
+      waveOut.Stop;
+      waveOut.Close;
 //    tbPlayPosition.Position := tbPlayPosition.Max;
     end;
   finally
-    FreeMem(Buffer);
+    //FreeMem(Buffer);
+    soundFile.Free;
   end;
 
   btnPlayAll.Enabled := true;
   btnStop.Enabled := false;
 end;
 
-procedure TForm1.BuildDirectoryTree(Node: TTreeNode; const Path: string; Depth: Integer);
+procedure TMainForm.BuildDirectoryTree(Node: TTreeNode; const Path: string; Depth: Integer);
 var
   Rec     : TSearchRec; {ファイル情報}
   TreeNode: TTreeNode;  {TreeView追加ノード}
@@ -419,14 +400,14 @@ begin
   Node.CustomSort(nil, 0);
 end;
 
-function TForm1.GetPathFromNode(Node: TTreeNode): String;
+function TMainForm.GetPathFromNode(Node: TTreeNode): String;
 begin
   Result := Node.Text + '\';
   if Node.Parent <> nil then
     Result := GetPathFromNode(Node.Parent) + Result;
 end;
 
-procedure TForm1.tvDirectoryExpanded(Sender: TObject; Node: TTreeNode);
+procedure TMainForm.tvDirectoryExpanded(Sender: TObject; Node: TTreeNode);
 begin
   Node.Selected := true;
   Node.ImageIndex := SHELLICON_OPENFOLDER;
@@ -439,7 +420,7 @@ begin
 //  tvDirectory.Repaint;
 end;
 
-procedure TForm1.tvDirectoryClick(Sender: TObject);
+procedure TMainForm.tvDirectoryClick(Sender: TObject);
 begin
   if tvDirectory.Selected = nil then Exit;
 
@@ -449,7 +430,7 @@ begin
   txtPath.Text := FStrDirectory;
 end;
 
-function TForm1.BuildFileList(const Path: string): Integer;
+function TMainForm.BuildFileList(const Path: string): Integer;
 var
   Rec: TSearchRec; {ファイル情報}
   i: Integer;
@@ -487,7 +468,7 @@ begin
   Result := sumSize;
 end;
 
-function TForm1.UnListFileFilter(filename: String): Boolean;
+function TMainForm.UnListFileFilter(filename: String): Boolean;
 var
   ext: string;
   extList:TStringList;
@@ -506,12 +487,12 @@ begin
   end;
 end;
 
-procedure TForm1.Panel1Resize(Sender: TObject);
+procedure TMainForm.Panel1Resize(Sender: TObject);
 begin
   cbexDrive.Width := Panel1.Width;
 end;
 
-procedure TForm1.BuildDriveList(ADriveList: TStrings);
+procedure TMainForm.BuildDriveList(ADriveList: TStrings);
 var
   DriveStr: array[0..128] of Char;
   CurrentDriveStr: string;
@@ -534,7 +515,7 @@ begin
   end;
 end;
 
-procedure TForm1.cbxDriveChange(Sender: TObject);
+procedure TMainForm.cbxDriveChange(Sender: TObject);
 begin
   if cbexDrive.ItemIndex = -1 then Exit;
 
@@ -542,7 +523,7 @@ begin
   txtPath.Text := cbexDrive.ItemsEx[cbexDrive.ItemIndex].Caption;
 end;
 
-procedure TForm1.InitDirectoryTree(const Path: String);
+procedure TMainForm.InitDirectoryTree(const Path: String);
 var
   root: TTreeNode;
 begin
@@ -561,7 +542,7 @@ begin
   tvDirectory.CustomSort(nil, 0);
 end;
 
-procedure TForm1.InitFileList(const Path: String);
+procedure TMainForm.InitFileList(const Path: String);
 var
   sumSize: Integer;
   t: Real;
@@ -586,12 +567,12 @@ begin
                               ]);
 end;
 
-procedure TForm1.txtFilterChange(Sender: TObject);
+procedure TMainForm.txtFilterChange(Sender: TObject);
 begin
   InitFileList(FStrDirectory);
 end;
 
-procedure TForm1.xlvFilesDblClick(Sender: TObject);
+procedure TMainForm.xlvFilesDblClick(Sender: TObject);
 begin
   if lvFiles.SelCount = 0 then Exit;
 
@@ -600,19 +581,19 @@ begin
   PlaySound(FStrDirectory + lvFiles.Selected.SubItems[0]);
 end;
 
-procedure TForm1.tvDirectoryCollapsed(Sender: TObject; Node: TTreeNode);
+procedure TMainForm.tvDirectoryCollapsed(Sender: TObject; Node: TTreeNode);
 begin
   Node.ImageIndex := SHELLICON_CLOSEDFOLDER;
   tvDirectory.Update;
 end;
 
-procedure TForm1.btnStopaClick(Sender: TObject);
+procedure TMainForm.btnStopaClick(Sender: TObject);
 begin
   waveOut.Stop;
   FbStopping := true;
 end;
 
-procedure TForm1.PopupFileListPopup(Sender: TObject);
+procedure TMainForm.PopupFileListPopup(Sender: TObject);
 var
   i: Integer;
 begin
@@ -632,7 +613,7 @@ begin
   end;
 end;
 
-procedure TForm1.PlayList(Index: Integer);
+procedure TMainForm.PlayList(Index: Integer);
 begin
   if lvFiles.Items.Count = 0 then Exit;
 
@@ -667,7 +648,7 @@ begin
   btnStop.Enabled := false;
 end;
 
-procedure TForm1.FileListPlayFromHereExecute(Sender: TObject);
+procedure TMainForm.FileListPlayFromHereExecute(Sender: TObject);
 begin
   PlayList(lvFiles.ItemIndex);
 end;
@@ -686,7 +667,7 @@ end;
 //  SetForegroundWindow(Application.Handle);
 //end;
 
-function TForm1.FindChild(Node: TTreeNode; SearchText: string): TTreeNode;
+function TMainForm.FindChild(Node: TTreeNode; SearchText: string): TTreeNode;
 var
   CurItem: TTreeNode;
 begin
@@ -703,13 +684,13 @@ begin
   end;
 end;
 
-procedure TForm1.ToolBarOpenPathExecute(Sender: TObject);
+procedure TMainForm.ToolBarOpenPathExecute(Sender: TObject);
 begin
   if DirectoryExists(txtPath.Text) then
     ShellExecute(Handle, 'explore', PChar(txtPath.Text), nil, nil, SW_SHOW);
 end;
 
-procedure TForm1.AddFilelistPopupMenu;
+procedure TMainForm.AddFilelistPopupMenu;
 var
   i: Integer;
   menu: TMenuItem;
@@ -737,7 +718,7 @@ begin
   end;
 end;
 
-procedure TForm1.FileListExecExternalApp(Sender: TObject);
+procedure TMainForm.FileListExecExternalApp(Sender: TObject);
 var
   menu: TMenuItem;
   ParmStr: String;
@@ -770,18 +751,18 @@ begin
   end;
 end;
 
-procedure TForm1.tbMasterVolumeChange(Sender: TObject);
+procedure TMainForm.tbMasterVolumeChange(Sender: TObject);
 begin
   waveOut.Volume := tbMasterVolume.Position;
 end;
 
-procedure TForm1.FileListPlayThisExecute(Sender: TObject);
+procedure TMainForm.FileListPlayThisExecute(Sender: TObject);
 begin
 //  PlaySound(FStrDirectory + lvFiles.Selected.Caption);
   PlaySound(FStrDirectory + lvFiles.Selected.SubItems[0]);
 end;
 
-procedure TForm1.xlvFilesKeyDown(Sender: TObject; var Key: Word;
+procedure TMainForm.xlvFilesKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
   case Key of
@@ -824,135 +805,41 @@ begin
   end;
 end;
 
-procedure TForm1.xlvFilesClick(Sender: TObject);
+procedure TMainForm.xlvFilesClick(Sender: TObject);
 var
-  Buffer: Pointer;
-  dwLength: DWORD;
   filename: String;
   waveHeader: TWaveFormatEx;
+  soundFile: TSoundFile;
 begin
   if lvFiles.SelCount = 0 then Exit;
-  if not Form2.Showing then Exit;
-//  filename := FStrDirectory + lvFiles.Selected.Caption;
+  if not WaveViewForm.Showing then Exit;
   filename := FStrDirectory + lvFiles.Selected.SubItems[0];
   if not FileExists(filename) then Exit;
 
-  // RAWファイル専用モードの場合は，フォーマットを0にしておく
-  // このprocedure中で呼ばれる関数で利用される
-  if AppGlobal.Ini.ReadBool('Setting', 'RawOnlyMode', true) then
-    waveHeader.wFormatTag := 0
-  else
-    waveHeader.wFormatTag := 1;
+  soundFile := TSoundFile.Create;
+  soundFile.Load(filename, cbSwap.Checked, AppGlobal.Ini.ReadBool('Setting', 'RawOnlyMode', true));
+  waveHeader := soundFile.WaveFormat;
 
-  dwLength := GetFileData(Buffer, filename, cbSwap.Checked, waveHeader);
   try
     // WAVヘッダーの自動適用がONで，解析にも成功していれば
     if AppGlobal.Ini.ReadBool('Setting', 'AutoWavHeader', true) and (waveHeader.wFormatTag > 0) then
-      Form2.SetParameter(waveHeader.wBitsPerSample, waveHeader.nSamplesPerSec, miAutoLabel.Checked)
+      WaveViewForm.SetParameter(waveHeader.wBitsPerSample, waveHeader.nSamplesPerSec, miAutoLabel.Checked)
     else
-      Form2.SetParameter(StrToInt(cbxBit.Text), StrToInt(cbxSampling.Text), miAutoLabel.Checked);
+      WaveViewForm.SetParameter(StrToInt(cbxBit.Text), StrToInt(cbxSampling.Text), miAutoLabel.Checked);
 
-    Form2.DrawWaveGraph(filename, Buffer, dwLength);
+    WaveViewForm.DrawWaveGraph(filename, soundFile.Buffer, soundFile.BufferLength);
   finally
-    FreeMem(Buffer);
+    soundFile.Free;
   end;
 end;
 
-function TForm1.GetFileData(var lpData: Pointer; filename: String;
-  bSwap: Boolean; var waveHeader: TWaveFormatEx): Cardinal;
-var
-  fileStream: TMemoryStream;
-begin
-  Result := 0;
-
-  fileStream := TMemoryStream.Create;
-  fileStream.LoadFromFile(filename);
-
-  // try to load as WAV file, if no 'RAW-ONLY-MODE'
-  if waveHeader.wFormatTag > 0 then
-  begin
-    fileStream.Position := 0;
-    Result := GetFileData_WAV(lpData, fileStream, waveHeader);
-  end;
-
-  // try to read as RAW file
-  if Result = 0 then
-  begin
-    waveHeader.wFormatTag := 0;
-    fileStream.Position := 0;
-    Result := GetFileData_RAW(lpData, fileStream);
-    if(bSwap) then SwapData(lpData, Result);
-  end;
-
-  fileStream.Clear;
-  fileStream.Free;
-end;
-
-function TForm1.GetFileData_RAW(var lpData: Pointer; var msWave: TMemoryStream): Cardinal;
-var
-  iBufferLength: LongInt;
-begin
-  iBufferLength := msWave.Size;
-  System.GetMem(lpData, iBufferLength);
-  msWave.ReadBuffer(lpData^, iBufferLength);
-  Result := Cardinal(iBufferLength);
-end;
-
-function TForm1.GetFileData_WAV(var lpData: Pointer; var msWave: TMemoryStream; var waveHeader: TWaveFormatEx): Cardinal;
-var
-  chunk: Array[0..4] of AnsiChar;
-  iBufferLength: LongInt;
-  iFileAllLength: LongInt;
-begin
-  Result := 0;
-
-  msWave.ReadBuffer(chunk[0], 4);  // 'RIFF'
-  chunk[4] := AnsiChar(0);
-  if chunk = 'RIFF' then
-  begin
-    msWave.ReadBuffer(Pointer(iFileAllLength), 4);  // 全体 - 8 byte
-    msWave.ReadBuffer(chunk[0], 4);  // 'WAVE'
-    iBufferLength := 0;
-
-    // チャンクのパ―ス
-    repeat
-    begin
-      msWave.Seek(iBufferLength, soFromCurrent);
-      msWave.ReadBuffer(chunk[0], 4);
-      msWave.ReadBuffer(Pointer(iBufferLength), 4);
-
-      // 'fmt 'チャンク
-      if chunk = 'fmt ' then
-      begin
-        msWave.ReadData(waveHeader.wFormatTag);       // 2
-        msWave.ReadData(waveHeader.nChannels);        // 2
-        msWave.ReadData(waveHeader.nSamplesPerSec);   // 4
-        msWave.ReadData(waveHeader.nAvgBytesPerSec);  // 4
-        msWave.ReadData(waveHeader.nBlockAlign);      // 2
-        msWave.ReadData(waveHeader.wBitsPerSample);   // 2
-        waveHeader.cbSize := 0;
-        msWave.Seek(-iBufferLength, soFromCurrent);
-      end;
-    end
-    until chunk = 'data';
-
-    // 'data'チャンク
-    //lpData := Pointer(AllocMem(iBufferLength));
-    System.GetMem(lpData, iBufferLength);
-    msWave.ReadBuffer(lpData^, iBufferLength);
-
-    Result := Cardinal(iBufferLength);
-  end;
-  // RIFFヘッダーがないと Reult は0のままである
-end;
-
-procedure TForm1.ReadDriveList(ADriveList: TStrings);
+procedure TMainForm.ReadDriveList(ADriveList: TStrings);
 begin
   ADriveList.Clear;
   AppGlobal.Ini.ReadSection('DriveList', ADriveList);
 end;
 
-procedure TForm1.ReadAdditionalDriveList(ADriveList: TStrings);
+procedure TMainForm.ReadAdditionalDriveList(ADriveList: TStrings);
 var
   i: Integer;
   strs: TStringList;
@@ -980,7 +867,7 @@ begin
   end;
 end;
 
-procedure TForm1.BuildDriveListEx;
+procedure TMainForm.BuildDriveListEx;
 var
   i: Integer;
   num: Cardinal;
@@ -1019,14 +906,14 @@ begin
   end;
 end;
 
-procedure TForm1.xlvFilesChange(Sender: TObject; Item: TListItem;
+procedure TMainForm.xlvFilesChange(Sender: TObject; Item: TListItem;
   Change: TItemChange);
 begin
   if Change = ctState then
     xlvFilesClick(Sender);
 end;
 
-procedure TForm1.OpenDirectory(dir: String);
+procedure TMainForm.OpenDirectory(dir: String);
 var
   drive: String;
   i: Integer;
@@ -1066,7 +953,7 @@ begin
   tvDirectoryClick(nil);
 end;
 
-procedure TForm1.FileListDeleteFileExecute(Sender: TObject);
+procedure TMainForm.FileListDeleteFileExecute(Sender: TObject);
 var
   filename: String;
   path: String;
@@ -1138,14 +1025,14 @@ begin
 
 end;
 
-procedure TForm1.HelpAboutBoxExecute(Sender: TObject);
+procedure TMainForm.HelpAboutBoxExecute(Sender: TObject);
 begin
   AboutBox := TAboutBox.CreateParented(Handle);
   AboutBox.ShowModal;
   AboutBox.Free;
 end;
 
-procedure TForm1.miAutoLabelClick(Sender: TObject);
+procedure TMainForm.miAutoLabelClick(Sender: TObject);
 begin
   if miAutoLabel.Checked then
     miAutoLabel.Checked := false
@@ -1153,14 +1040,14 @@ begin
     miAutoLabel.Checked := true;
 end;
 
-procedure TForm1.SettingOpenDialogExecute(Sender: TObject);
+procedure TMainForm.SettingOpenDialogExecute(Sender: TObject);
 begin
   SettingDlg.ShowModal;
   AppGlobal.LoadSetting;
   LoadSetting;
 end;
 
-procedure TForm1.ViewReloadExecute(Sender: TObject);
+procedure TMainForm.ViewReloadExecute(Sender: TObject);
 begin
   // リスト、ツリーの初期化
   BuildDriveListEx;
@@ -1172,22 +1059,22 @@ begin
 
 end;
 
-procedure TForm1.miSimpleHelpClick(Sender: TObject);
+procedure TMainForm.miSimpleHelpClick(Sender: TObject);
 begin
   if miSimpleHelp.Checked then
     miSimpleHelp.Checked := false
   else
     miSimpleHelp.Checked := true;
 
-  Form3.Visible := miSimpleHelp.Checked;
+  ShortcutListForm.Visible := miSimpleHelp.Checked;
 end;
 
-procedure TForm1.ViewWaveFormExecute(Sender: TObject);
+procedure TMainForm.ViewWaveFormExecute(Sender: TObject);
 begin
-  Form2.Visible := ViewWaveForm.Checked;
+  WaveViewForm.Visible := ViewWaveForm.Checked;
 end;
 
-procedure TForm1.SetAutoCompleteEdit;
+procedure TMainForm.SetAutoCompleteEdit;
 type
   SHAUTOCOMPLETE = function(hwndEdit:HWND; dwFlags:DWORD):HRESULT;stdcall;
 const
@@ -1206,7 +1093,7 @@ begin
   end;
 end;
 
-procedure TForm1.txtPathKeyDown(Sender: TObject; var Key: Word;
+procedure TMainForm.txtPathKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 var
   dir: String;
@@ -1221,13 +1108,13 @@ begin
   end;
 end;
 
-procedure TForm1.tvDirectoryCompare(Sender: TObject; Node1,
+procedure TMainForm.tvDirectoryCompare(Sender: TObject; Node1,
   Node2: TTreeNode; Data: Integer; var Compare: Integer);
 begin
   Compare := MyCompare(Node1.Text, Node2.Text);
 end;
 
-procedure TForm1.FileListUndoDeleteExecute(Sender: TObject);
+procedure TMainForm.FileListUndoDeleteExecute(Sender: TObject);
 var
   i: Integer;
 begin
@@ -1246,7 +1133,7 @@ begin
     ShowMessage('移動に失敗しました');
 end;
 
-procedure TForm1.tvDirectoryKeyDown(Sender: TObject; var Key: Word;
+procedure TMainForm.tvDirectoryKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
   case Key of
@@ -1259,7 +1146,7 @@ begin
   KeyDownFocusMove(Sender, Key, Shift);
 end;
 
-procedure TForm1.ControlBar1Resize(Sender: TObject);
+procedure TMainForm.ControlBar1Resize(Sender: TObject);
 begin
   Main_ToolBar.ClientWidth := ControlBar1.ClientWidth;
   ToolBar2.ClientWidth := ControlBar1.ClientWidth;
@@ -1268,7 +1155,7 @@ begin
   txtPath.Width := ToolBar2.ClientWidth - tbtnOpenPath.Width;
 end;
 
-procedure TForm1.KeyDownFocusMove(Sender: TObject; var Key: Word;
+procedure TMainForm.KeyDownFocusMove(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
   if not (ssAlt in Shift) then Exit;

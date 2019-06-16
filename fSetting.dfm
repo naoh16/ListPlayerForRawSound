@@ -104,6 +104,10 @@ object SettingDlg: TSettingDlg
       end
       object TabSheet2: TTabSheet
         Caption = #22806#37096#12450#12503#12522
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object txtAppName: TLabeledEdit
           Left = 32
           Top = 88
@@ -179,6 +183,10 @@ object SettingDlg: TSettingDlg
       object TabSheet3: TTabSheet
         Caption = #12501#12449#12452#12523#21066#38500
         ImageIndex = 2
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object GroupBox1: TGroupBox
           Left = 8
           Top = 8
