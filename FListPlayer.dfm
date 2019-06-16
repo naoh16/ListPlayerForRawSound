@@ -81,12 +81,14 @@ object Form1: TForm1
     TabOrder = 1
     object RBottomPanel: TPanel
       Left = 0
-      Top = 82
+      Top = 80
       Width = 529
-      Height = 310
+      Height = 312
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 0
+      ExplicitTop = 82
+      ExplicitHeight = 310
       object xlvFiles: TListView
         Left = -8
         Top = 24
@@ -118,8 +120,9 @@ object Form1: TForm1
       Left = 0
       Top = 0
       Width = 529
-      Height = 82
+      Height = 80
       Align = alTop
+      AutoSize = True
       ParentShowHint = False
       ShowHint = True
       TabOrder = 1
@@ -127,50 +130,62 @@ object Form1: TForm1
       object tbPlayPosition: TTrackBar
         Left = 11
         Top = 28
-        Width = 512
+        Width = 100
         Height = 22
         Hint = #29694#22312#12398#20877#29983#20301#32622
         Align = alBottom
         Enabled = False
-        Constraints.MinWidth = 50
+        Constraints.MinHeight = 20
+        Constraints.MinWidth = 100
         TabOrder = 0
         ThumbLength = 12
       end
       object Main_ToolBar: TToolBar
-        Left = 15
+        Left = 11
         Top = 2
-        Width = 507
-        Height = 22
+        Width = 100
+        Height = 20
+        Anchors = [akLeft, akRight]
+        AutoSize = True
         ButtonHeight = 20
         ButtonWidth = 21
         Caption = 'Main_ToolBar'
+        Constraints.MinHeight = 20
+        Constraints.MinWidth = 100
         Images = ImageList1
         TabOrder = 1
-        object cbSwap: TCheckBox
+        Wrapable = False
+        DesignSize = (
+          100
+          20)
+        object cbStereo: TCheckBox
           Left = 0
           Top = 0
-          Width = 49
-          Height = 20
-          Hint = #12481#12455#12483#12463#12377#12427#12392#12487#12540#12479#12434#12473#12527#12483#12503#12375#12390#35501#12415#36796#12415#12414#12377
-          Caption = 'Swap'
-          TabOrder = 0
-        end
-        object cbStereo: TCheckBox
-          Left = 49
-          Top = 0
-          Width = 56
+          Width = 60
           Height = 20
           Hint = #12481#12455#12483#12463#12377#12427#12392#12473#12486#12524#12458#12392#12375#12390#35501#12415#36796#12415#12414#12377
+          Align = alClient
           Caption = 'Stereo'
           TabOrder = 1
         end
-        object cbxBit: TComboBox
-          Left = 105
+        object cbSwap: TCheckBox
+          Left = 60
           Top = 0
-          Width = 40
+          Width = 54
+          Height = 20
+          Hint = #12481#12455#12483#12463#12377#12427#12392#12487#12540#12479#12434#12473#12527#12483#12503#12375#12390#35501#12415#36796#12415#12414#12377
+          Align = alClient
+          Caption = 'Swap'
+          TabOrder = 0
+        end
+        object cbxBit: TComboBox
+          Left = 114
+          Top = 0
+          Width = 44
           Height = 20
           Hint = #12499#12483#12488#25968'(BitPerSample)'
           Style = csDropDownList
+          Anchors = [akLeft, akTop, akBottom]
           ItemIndex = 1
           TabOrder = 2
           Text = '16'
@@ -181,11 +196,13 @@ object Form1: TForm1
             '64')
         end
         object cbxSampling: TComboBox
-          Left = 145
+          AlignWithMargins = True
+          Left = 158
           Top = 0
-          Width = 56
+          Width = 60
           Height = 20
           Hint = #12469#12531#12503#12522#12531#12464#12524#12540#12488'(SamplingPerSecond)'
+          Anchors = [akLeft, akTop, akBottom]
           TabOrder = 3
           Text = '16000'
           Items.Strings = (
@@ -199,32 +216,41 @@ object Form1: TForm1
             '48000'
             '96000')
         end
+        object ToolButton3: TToolButton
+          Left = 218
+          Top = 0
+          Width = 10
+          Caption = 'ToolButton3'
+          ImageIndex = 3
+          Style = tbsSeparator
+        end
         object txtFilter: TEdit
-          Left = 201
+          Left = 228
           Top = 0
           Width = 56
           Height = 20
           Hint = #12501#12449#12452#12523#12522#12473#12488#12398#12501#12451#12523#12479
+          Anchors = [akLeft, akTop, akBottom]
           TabOrder = 4
           Text = '*.*'
           OnChange = txtFilterChange
         end
         object ToolButton1: TToolButton
-          Left = 257
+          Left = 284
           Top = 0
-          Width = 8
+          Width = 10
           Caption = 'ToolButton1'
           Style = tbsSeparator
         end
         object btnPlayAll: TToolButton
-          Left = 265
+          Left = 294
           Top = 0
           Caption = 'btnPlayAll'
           ImageIndex = 0
           OnClick = btnPlayAllaClick
         end
         object btnStop: TToolButton
-          Left = 286
+          Left = 315
           Top = 0
           Caption = 'btnStop'
           Enabled = False
@@ -232,7 +258,7 @@ object Form1: TForm1
           OnClick = btnStopaClick
         end
         object tbMasterVolume: TTrackBar
-          Left = 307
+          Left = 336
           Top = 0
           Width = 93
           Height = 20
@@ -245,15 +271,15 @@ object Form1: TForm1
           ThumbLength = 10
         end
         object ToolButton2: TToolButton
-          Left = 400
+          Left = 429
           Top = 0
-          Width = 8
+          Width = 10
           Caption = 'ToolButton2'
           ImageIndex = 0
           Style = tbsSeparator
         end
         object tbtnViewWave: TToolButton
-          Left = 408
+          Left = 439
           Top = 0
           Action = ViewWaveForm
           ImageIndex = 2
@@ -263,24 +289,29 @@ object Form1: TForm1
       object ToolBar2: TToolBar
         Left = 11
         Top = 54
-        Width = 512
-        Height = 22
+        Width = 100
+        Height = 20
+        Anchors = [akLeft, akRight]
+        AutoSize = True
         ButtonHeight = 20
         ButtonWidth = 21
         Caption = 'ToolBar2'
+        Constraints.MinHeight = 20
+        Constraints.MinWidth = 100
         Images = ImageList1
         TabOrder = 2
+        Wrapable = False
         object txtPath: TEdit
           Left = 0
           Top = 0
-          Width = 457
+          Width = 433
           Height = 20
           Hint = #29694#22312#38283#12356#12390#12356#12427#12497#12473
           TabOrder = 0
           OnKeyDown = txtPathKeyDown
         end
         object tbtnOpenPath: TToolButton
-          Left = 457
+          Left = 433
           Top = 0
           Hint = #12456#12463#12473#12503#12525#12540#12521#12391#38283#12367
           HelpType = htKeyword

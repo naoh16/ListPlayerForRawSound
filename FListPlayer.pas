@@ -67,6 +67,7 @@ type
     ImageList1: TImageList;
     btnPlayAll: TToolButton;
     btnStop: TToolButton;
+    ToolButton3: TToolButton;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure btnPlayAllaClick(Sender: TObject);
@@ -653,9 +654,12 @@ begin
       Items[ItemIndex].Focused := true;
       if ItemIndex < Items.Count - 1 then
         Items[ItemIndex+1].MakeVisible(false);
-//      PlaySound(FStrDirectory + Items[ItemIndex].Caption);
-      PlaySound(FStrDirectory + Items[ItemIndex].SubItems[0]);
-      Sleep(100);
+      try
+        PlaySound(FStrDirectory + Items[ItemIndex].SubItems[0]);
+        Sleep(100);
+      except
+        FbStopping := true;
+      end;
     end;
     until not Assigned(Items[ItemIndex+1]);
   end;
@@ -841,15 +845,17 @@ begin
     waveHeader.wFormatTag := 1;
 
   dwLength := GetFileData(Buffer, filename, cbSwap.Checked, waveHeader);
+  try
+    // WAVヘッダーの自動適用がONで，解析にも成功していれば
+    if AppGlobal.Ini.ReadBool('Setting', 'AutoWavHeader', true) and (waveHeader.wFormatTag > 0) then
+      Form2.SetParameter(waveHeader.wBitsPerSample, waveHeader.nSamplesPerSec, miAutoLabel.Checked)
+    else
+      Form2.SetParameter(StrToInt(cbxBit.Text), StrToInt(cbxSampling.Text), miAutoLabel.Checked);
 
-  // WAVヘッダーの自動適用がONで，解析にも成功していれば
-  if AppGlobal.Ini.ReadBool('Setting', 'AutoWavHeader', true) and (waveHeader.wFormatTag > 0) then
-    Form2.SetParameter(waveHeader.wBitsPerSample, waveHeader.nSamplesPerSec, miAutoLabel.Checked)
-  else
-    Form2.SetParameter(StrToInt(cbxBit.Text), StrToInt(cbxSampling.Text), miAutoLabel.Checked);
-
-  Form2.DrawWaveGraph(filename, Buffer, dwLength);
-  FreeMem(Buffer);
+    Form2.DrawWaveGraph(filename, Buffer, dwLength);
+  finally
+    FreeMem(Buffer);
+  end;
 end;
 
 function TForm1.GetFileData(var lpData: Pointer; filename: String;
@@ -1033,14 +1039,14 @@ begin
   
   // まずはドライブ指定
   if cbexDrive.Text <> drive then
-  With TStringList.Create do
-  try
-    Assign(cbexDrive.Items);
-    cbexDrive.ItemIndex := IndexOf(drive);
-    cbexDrive.OnChange(nil);
-  finally
-    Free;
-  end;
+    With TStringList.Create do
+    try
+      Assign(cbexDrive.Items);
+      cbexDrive.ItemIndex := IndexOf(drive);
+    finally
+      Free;
+    end;
+  cbexDrive.OnChange(cbexDrive);
 
   // ディレクトリを指定
   With TStringList.Create do
@@ -1160,7 +1166,7 @@ begin
   BuildDriveListEx;
 
   if (txtPath.Text = '') then
-    cbexDrive.OnChange(nil);
+    cbexDrive.OnChange(cbexDrive);
 
   OpenDirectory(txtPath.Text);
 
@@ -1255,6 +1261,10 @@ end;
 
 procedure TForm1.ControlBar1Resize(Sender: TObject);
 begin
+  Main_ToolBar.ClientWidth := ControlBar1.ClientWidth;
+  ToolBar2.ClientWidth := ControlBar1.ClientWidth;
+  tbPlayPosition.ClientWidth := ControlBar1.ClientWidth;
+
   txtPath.Width := ToolBar2.ClientWidth - tbtnOpenPath.Width;
 end;
 
