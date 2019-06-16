@@ -67,6 +67,7 @@ type
     ImageList1: TImageList;
     btnPlayAll: TToolButton;
     btnStop: TToolButton;
+    ToolButton3: TToolButton;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure btnPlayAllaClick(Sender: TObject);
@@ -1255,6 +1256,10 @@ end;
 
 procedure TForm1.ControlBar1Resize(Sender: TObject);
 begin
+  Main_ToolBar.ClientWidth := ControlBar1.ClientWidth;
+  ToolBar2.ClientWidth := ControlBar1.ClientWidth;
+  tbPlayPosition.ClientWidth := ControlBar1.ClientWidth;
+
   txtPath.Width := ToolBar2.ClientWidth - tbtnOpenPath.Width;
 end;
 
