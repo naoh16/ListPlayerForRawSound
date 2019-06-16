@@ -1,4 +1,4 @@
-object Form2: TForm2
+object WaveViewForm: TWaveViewForm
   Left = 391
   Top = 109
   BorderIcons = [biSystemMenu]
@@ -47,7 +47,7 @@ object Form2: TForm2
     object lblMaxRange: TLabel
       Left = 0
       Top = 0
-      Width = 100
+      Width = 88
       Height = 20
       Alignment = taRightJustify
       Caption = #34920#31034#12377#12427#26368#22823#20516#65306
@@ -56,7 +56,7 @@ object Form2: TForm2
       Layout = tlCenter
     end
     object cmbMaxRange: TComboBox
-      Left = 100
+      Left = 88
       Top = 0
       Width = 80
       Height = 20
@@ -76,23 +76,23 @@ object Form2: TForm2
         '32768')
     end
     object ToolButton1: TToolButton
-      Left = 180
+      Left = 168
       Top = 0
       Width = 8
       Caption = 'ToolButton1'
       Style = tbsSeparator
     end
     object Label2: TLabel
-      Left = 188
+      Left = 176
       Top = 0
-      Width = 70
+      Width = 56
       Height = 20
       Alignment = taRightJustify
       Caption = ' '#27874#26368#23567#20516' '
       Layout = tlCenter
     end
     object txtWaveMax: TEdit
-      Left = 258
+      Left = 232
       Top = 0
       Width = 50
       Height = 20
@@ -112,16 +112,16 @@ object Form2: TForm2
       Text = 'txtWaveMax'
     end
     object Label1: TLabel
-      Left = 308
+      Left = 282
       Top = 0
-      Width = 70
+      Width = 56
       Height = 20
       Alignment = taRightJustify
       Caption = ' '#27874#26368#22823#20516' '
       Layout = tlCenter
     end
     object txtWaveMin: TEdit
-      Left = 378
+      Left = 338
       Top = 0
       Width = 50
       Height = 20

@@ -7,7 +7,7 @@ uses
   Dialogs, StdCtrls;
 
 type
-  TForm3 = class(TForm)
+  TShortcutListForm = class(TForm)
     Memo1: TMemo;
     procedure FormHide(Sender: TObject);
   private
@@ -17,7 +17,7 @@ type
   end;
 
 var
-  Form3: TForm3;
+  ShortcutListForm: TShortcutListForm;
 
 implementation
 uses
@@ -25,9 +25,9 @@ uses
 
 {$R *.dfm}
 
-procedure TForm3.FormHide(Sender: TObject);
+procedure TShortcutListForm.FormHide(Sender: TObject);
 begin
-  Form1.miSimpleHelp.Checked := false;
+  MainForm.miSimpleHelp.Checked := false;
 end;
 
 end.

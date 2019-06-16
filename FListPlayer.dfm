@@ -1,4 +1,4 @@
-object Form1: TForm1
+object MainForm: TMainForm
   Left = 234
   Top = 109
   Caption = 'ListPlayer for RawFile'
@@ -8,7 +8,7 @@ object Form1: TForm1
   Font.Charset = SHIFTJIS_CHARSET
   Font.Color = clWindowText
   Font.Height = -12
-  Font.Name = #65325#65331' '#65328#12468#12471#12483#12463
+  Font.Name = 'MS UI Gothic'
   Font.Style = []
   Menu = MainMenu1
   OldCreateOrder = False
@@ -81,14 +81,12 @@ object Form1: TForm1
     TabOrder = 1
     object RBottomPanel: TPanel
       Left = 0
-      Top = 80
+      Top = 82
       Width = 529
-      Height = 312
+      Height = 310
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 0
-      ExplicitTop = 82
-      ExplicitHeight = 310
       object xlvFiles: TListView
         Left = -8
         Top = 24
@@ -120,13 +118,14 @@ object Form1: TForm1
       Left = 0
       Top = 0
       Width = 529
-      Height = 80
+      Height = 82
       Align = alTop
       AutoSize = True
       ParentShowHint = False
       ShowHint = True
       TabOrder = 1
       OnResize = ControlBar1Resize
+      ExplicitHeight = 80
       object tbPlayPosition: TTrackBar
         Left = 11
         Top = 28
@@ -290,7 +289,7 @@ object Form1: TForm1
         Left = 11
         Top = 54
         Width = 100
-        Height = 20
+        Height = 22
         Anchors = [akLeft, akRight]
         AutoSize = True
         ButtonHeight = 20

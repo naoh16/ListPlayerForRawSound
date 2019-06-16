@@ -22,7 +22,7 @@ type
 
   TReadDataFunc = function(data: PByteArray; Index: Integer): SmallInt;
 
-  TForm2 = class(TForm)
+  TWaveViewForm = class(TForm)
     PaintBox1: TPaintBox;
     PopupWaveView: TPopupMenu;
     miSetMaxWidth: TMenuItem;
@@ -92,7 +92,7 @@ uses
 
 {$R *.dfm}
 
-procedure TForm2.FormCreate(Sender: TObject);
+procedure TWaveViewForm.FormCreate(Sender: TObject);
 begin
   data := nil;
   len := 0;
@@ -114,7 +114,7 @@ begin
 
 end;
 
-procedure TForm2.FormDestroy(Sender: TObject);
+procedure TWaveViewForm.FormDestroy(Sender: TObject);
 begin
   // ここで処理するとエラーになるっぽい?
   if Assigned(waveimg) then
@@ -123,7 +123,7 @@ begin
   SetLength(labelData, 0);
 end;
 
-procedure TForm2.FormClose(Sender: TObject; var Action: TCloseAction);
+procedure TWaveViewForm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
 //  if Assigned(data) then
 //    FreeMem(data);
@@ -131,13 +131,13 @@ begin
 //    FreeMem(labelData);
 end;
 
-procedure TForm2.FormHide(Sender: TObject);
+procedure TWaveViewForm.FormHide(Sender: TObject);
 begin
-  if Assigned(Form1.tbtnViewWave) then
-    Form1.tbtnViewWave.Down := false;
+  if Assigned(MainForm.tbtnViewWave) then
+    MainForm.tbtnViewWave.Down := false;
 end;
 
-procedure TForm2.DrawWaveGraph(const filename: String; lpData: Pointer; dwLength: DWORD);
+procedure TWaveViewForm.DrawWaveGraph(const filename: String; lpData: Pointer; dwLength: DWORD);
 begin
   if lastFilename <> filename then
   begin
@@ -165,7 +165,7 @@ begin
   DrawWaveGraph;
 end;
 
-procedure TForm2.DrawPlayLine(pos: cardinal);
+procedure TWaveViewForm.DrawPlayLine(pos: cardinal);
 var
   xpos: Integer;
   r: TRect;
@@ -184,7 +184,7 @@ begin
   FnOldLinePos := xpos;
 end;
 
-procedure TForm2.DrawGraphBase;
+procedure TWaveViewForm.DrawGraphBase;
 var
   strOffset: integer;
   i, t, num, sample: Integer;
@@ -251,7 +251,7 @@ begin
 //  PaintBox1.Refresh;
 end;
 
-procedure TForm2.DrawWaveGraph;
+procedure TWaveViewForm.DrawWaveGraph;
 var
   i, k, h: Integer;
   j: Real;
@@ -339,7 +339,7 @@ begin
   end;
 end;
 
-procedure TForm2.PaintBox1Paint(Sender: TObject);
+procedure TWaveViewForm.PaintBox1Paint(Sender: TObject);
 begin
   if Assigned(waveimg) then
     PaintBox1.Canvas.Draw(0,0,waveimg);
@@ -353,19 +353,19 @@ begin
   txtWaveMin.Text := IntToStr(FnLastMinWaveData);
 end;
 
-procedure TForm2.WMEraseBkGnd(var vMsg: TWMEraseBkGnd);
+procedure TWaveViewForm.WMEraseBkGnd(var vMsg: TWMEraseBkGnd);
 begin
 //  vMsg.Result := 1; // フォームの背景を現在のブラシで塗りつぶさない
 end;
 
-procedure TForm2.FormResize(Sender: TObject);
+procedure TWaveViewForm.FormResize(Sender: TObject);
 begin
   divnum := IfThen(Width>len,Width,len/Width);
   SetDrawBaseLine;
   DrawWaveGraph;
 end;
 
-procedure TForm2.ReadLabelFile(filename: String);
+procedure TWaveViewForm.ReadLabelFile(filename: String);
 var
   i,j: Integer;
   labelfile: String;
@@ -424,14 +424,14 @@ begin
   end;
 end;
 
-procedure TForm2.SetParameter(nBit, nSampling: Integer; bDrawLabel: Boolean);
+procedure TWaveViewForm.SetParameter(nBit, nSampling: Integer; bDrawLabel: Boolean);
 begin
   FSampling := nSampling;
   FBytePerSec := nBit shr 3;  // nBit / 8
   FbDrawLabel := bDrawLabel;
 end;
 
-procedure TForm2.FormCanResize(Sender: TObject; var NewWidth,
+procedure TWaveViewForm.FormCanResize(Sender: TObject; var NewWidth,
   NewHeight: Integer; var Resize: Boolean);
 begin
   if NewHeight < 100 then
@@ -439,7 +439,7 @@ begin
 //  SetDrawBaseLine;
 end;
 
-procedure TForm2.miSetMaxWidthClick(Sender: TObject);
+procedure TWaveViewForm.miSetMaxWidthClick(Sender: TObject);
 var
   DeskRect: TRect;
 begin
@@ -449,7 +449,7 @@ begin
   FormResize(nil);
 end;
 
-procedure TForm2.SetDrawBaseLine;
+procedure TWaveViewForm.SetDrawBaseLine;
 var
   num, i: Integer;
   h, center: Real;
@@ -474,13 +474,13 @@ begin
 
 end;
 
-procedure TForm2.cmbMaxRangeChange(Sender: TObject);
+procedure TWaveViewForm.cmbMaxRangeChange(Sender: TObject);
 begin
   FnMaxRange := StrToInt(cmbMaxRange.Text);
   FormResize(nil);
 end;
 
-procedure TForm2.miViewToolbarClick(Sender: TObject);
+procedure TWaveViewForm.miViewToolbarClick(Sender: TObject);
 begin
   WaveView_ToolBar.Visible := miViewToolBar.Checked;
   FormResize(nil);

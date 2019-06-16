@@ -1,4 +1,4 @@
-object Form3: TForm3
+object ShortcutListForm: TShortcutListForm
   Left = 724
   Top = 255
   BorderIcons = [biSystemMenu]
