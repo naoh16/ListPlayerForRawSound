@@ -654,9 +654,12 @@ begin
       Items[ItemIndex].Focused := true;
       if ItemIndex < Items.Count - 1 then
         Items[ItemIndex+1].MakeVisible(false);
-//      PlaySound(FStrDirectory + Items[ItemIndex].Caption);
-      PlaySound(FStrDirectory + Items[ItemIndex].SubItems[0]);
-      Sleep(100);
+      try
+        PlaySound(FStrDirectory + Items[ItemIndex].SubItems[0]);
+        Sleep(100);
+      except
+        FbStopping := true;
+      end;
     end;
     until not Assigned(Items[ItemIndex+1]);
   end;
