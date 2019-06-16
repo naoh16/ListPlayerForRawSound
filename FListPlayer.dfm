@@ -130,7 +130,7 @@ object Form1: TForm1
       object tbPlayPosition: TTrackBar
         Left = 11
         Top = 28
-        Width = 511
+        Width = 100
         Height = 22
         Hint = #29694#22312#12398#20877#29983#20301#32622
         Align = alBottom
@@ -143,7 +143,7 @@ object Form1: TForm1
       object Main_ToolBar: TToolBar
         Left = 11
         Top = 2
-        Width = 511
+        Width = 100
         Height = 20
         Anchors = [akLeft, akRight]
         AutoSize = True
@@ -156,7 +156,7 @@ object Form1: TForm1
         TabOrder = 1
         Wrapable = False
         DesignSize = (
-          511
+          100
           20)
         object cbStereo: TCheckBox
           Left = 0
@@ -289,7 +289,7 @@ object Form1: TForm1
       object ToolBar2: TToolBar
         Left = 11
         Top = 54
-        Width = 512
+        Width = 100
         Height = 20
         Anchors = [akLeft, akRight]
         AutoSize = True
