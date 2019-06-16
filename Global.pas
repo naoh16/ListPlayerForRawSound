@@ -7,7 +7,7 @@ uses
 const
   AppMajorVersion = 0;
   AppMinorVersion = 3;
-  AppRevision = 1;
+  AppRevision = 2;
 
 type
   TGlobal = class
