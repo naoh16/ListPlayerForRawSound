@@ -40,14 +40,21 @@ begin
   RowSelect := true;
   ReadOnly := true;
   ViewStyle := vsReport;
+
   item := Columns.Add;
   item.Caption := '  ';
+
   item := Columns.Add;
   item.Caption := 'ファイル名';
+
   item := Columns.Add;
   item.Caption := 'サイズ';
+  item.Alignment := taRightJustify;
+
   item := Columns.Add;
   item.Caption := '時間';
+  item.Alignment := taRightJustify;
+
   item := Columns.Add;
   item.Caption := '更新日付';
 
