@@ -845,15 +845,17 @@ begin
     waveHeader.wFormatTag := 1;
 
   dwLength := GetFileData(Buffer, filename, cbSwap.Checked, waveHeader);
+  try
+    // WAVヘッダーの自動適用がONで，解析にも成功していれば
+    if AppGlobal.Ini.ReadBool('Setting', 'AutoWavHeader', true) and (waveHeader.wFormatTag > 0) then
+      Form2.SetParameter(waveHeader.wBitsPerSample, waveHeader.nSamplesPerSec, miAutoLabel.Checked)
+    else
+      Form2.SetParameter(StrToInt(cbxBit.Text), StrToInt(cbxSampling.Text), miAutoLabel.Checked);
 
-  // WAVヘッダーの自動適用がONで，解析にも成功していれば
-  if AppGlobal.Ini.ReadBool('Setting', 'AutoWavHeader', true) and (waveHeader.wFormatTag > 0) then
-    Form2.SetParameter(waveHeader.wBitsPerSample, waveHeader.nSamplesPerSec, miAutoLabel.Checked)
-  else
-    Form2.SetParameter(StrToInt(cbxBit.Text), StrToInt(cbxSampling.Text), miAutoLabel.Checked);
-
-  Form2.DrawWaveGraph(filename, Buffer, dwLength);
-  FreeMem(Buffer);
+    Form2.DrawWaveGraph(filename, Buffer, dwLength);
+  finally
+    FreeMem(Buffer);
+  end;
 end;
 
 function TForm1.GetFileData(var lpData: Pointer; filename: String;
